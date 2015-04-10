@@ -1,8 +1,11 @@
 package org.apodhrad.diffutils_ext;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.util.List;
 
+import org.junit.Assert;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +38,12 @@ public class HtmlGeneratorTest {
 		Patch patch = DiffUtils.diff(original, revised);
 		Diff diff = new Diff(patch);
 		
-		new HtmlGenerator(target).generateHtmlDiff(diff, "test");
+		new HtmlGenerator(target).generateHtmlDiff(diff, "test").generateIndex();
 		
+		assertTrue(new File(target, "diff-reports").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "lib").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "diff").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test.html").exists());
 	}
 }
