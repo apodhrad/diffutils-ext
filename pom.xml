@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apodhrad.example</groupId>
   <artifactId>diffutils-ext</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2-SNAPSHOT</version>
   <dependencies>
   	<dependency>
   		<groupId>com.googlecode.java-diff-utils</groupId>
