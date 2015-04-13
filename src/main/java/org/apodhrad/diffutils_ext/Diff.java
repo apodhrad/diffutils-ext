@@ -55,11 +55,9 @@ public class Diff extends Patch {
 
 	private static String getPositionInfo(Chunk chunk) {
 		int numberOfLines = chunk.getLines().size();
-		String positionInfo = String.valueOf(chunk.getPosition()
-				+ (numberOfLines > 0 ? 1 : 0));
+		String positionInfo = String.valueOf(chunk.getPosition() + (numberOfLines > 0 ? 1 : 0));
 		if (numberOfLines > 1) {
-			positionInfo += ","
-					+ String.valueOf(chunk.getPosition() + numberOfLines);
+			positionInfo += "," + String.valueOf(chunk.getPosition() + numberOfLines);
 		}
 		return positionInfo;
 	}
