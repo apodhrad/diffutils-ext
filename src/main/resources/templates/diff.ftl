@@ -4,7 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Diff for ${name}</title>
 	<script type="text/javascript" src="../lib/scripts/shCore.js"></script>
-	<script type="text/javascript" src="../lib/scripts/shBrushCustom.js"></script>
+	<script type="text/javascript" src="../lib/scripts/shBrushDiff.js"></script>
 	<link type="text/css" rel="stylesheet" href="../lib/styles/shCoreDefault.css"/>
 	<script type="text/javascript">SyntaxHighlighter.all();</script>
 </head>
@@ -12,7 +12,7 @@
 <body style="background: white; font-family: Helvetica">
 
 <h1>Diff for ${name}</h1>
-<pre class="brush: custom;">
+<pre class="brush: diff;">
 ${code}
 </pre>
 

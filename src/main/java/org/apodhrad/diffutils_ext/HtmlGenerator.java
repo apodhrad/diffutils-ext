@@ -12,6 +12,9 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
+import difflib.DiffUtils;
+import difflib.Patch;
+import difflib.StringUtills;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -67,30 +70,49 @@ public class HtmlGenerator {
 		return this;
 	}
 
-	public HtmlGenerator generateHtmlDiff(Diff diff, String name) throws IOException {
-		if (name == null) {
-			throw new IllegalArgumentException("Name must be specified!");
-		}
-		if (name.toLowerCase().endsWith(".html")) {
-			name = name.substring(0, name.length() - 5);
+	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile) throws IOException {
+		if (originalFile == null || revisedFile == null) {
+			throw new IllegalArgumentException("Both files must be specified!");
 		}
 
+		String originalName = originalFile.getName();
+		String revisedName = revisedFile.getName();
+		
+		List<String> originalLines = FileUtils.readLines(originalFile);
+		List<String> revisedLines = FileUtils.readLines(revisedFile);
+		
+		Patch diff = DiffUtils.diff(originalLines, revisedLines);
+		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
+		
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("name", name);
-		data.put("code", diff.toString());
+		data.put("name", revisedName);
+		data.put("code", StringUtills.join(lines, "\n"));
 
-		Writer fileWriter = new FileWriter(new File(diffDir, name + ".html"));
+		Writer fileWriter = new FileWriter(new File(diffDir, revisedName + ".html"));
 		try {
 			diffTemplate.process(data, fileWriter);
 		} catch (TemplateException e) {
-			throw new HtmlGeneratorException("Cannot create HTML diff with name '" + name + "'", e);
+			throw new HtmlGeneratorException("Cannot create HTML diff with name '" + revisedName + "'", e);
 		} finally {
 			fileWriter.close();
 		}
 
-		diffs.add(name);
+		diffs.add(revisedName);
 
 		return this;
+	}
+	
+	private void saveDiff(File originalFile, File revisedFile) throws IOException {
+		String originalName = originalFile.getName();
+		String revisedName = revisedFile.getName();
+		
+		List<String> originalLines = FileUtils.readLines(originalFile);
+		List<String> revisedLines = FileUtils.readLines(revisedFile);
+		
+		Patch diff = DiffUtils.diff(originalLines, revisedLines);
+		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
+		
+		FileUtils.writeLines(new File(diffDir, revisedName), lines);
 	}
 
 	public HtmlGenerator generateIndex() throws IOException {
