@@ -26,4 +26,12 @@
     </snapshots>
   </pluginRepository>
 </pluginRepositories>
+
+</dependencies>
+  <dependency>
+    <groupId>org.apodhrad</groupId>
+    <artifactId>diffutils-ext</artifactId>
+    <version>0.1.0</version>
+  </dependency>
+</dependencies>
 ````
