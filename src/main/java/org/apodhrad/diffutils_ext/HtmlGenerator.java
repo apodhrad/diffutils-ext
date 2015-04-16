@@ -71,19 +71,19 @@ public class HtmlGenerator {
 	}
 
 	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile) throws IOException {
-		if (originalFile == null || revisedFile == null) {
-			throw new IllegalArgumentException("Both files must be specified!");
+		if (originalFile == null && revisedFile == null) {
+			throw new IllegalArgumentException("At least one must be specified!");
 		}
 
-		String originalName = originalFile.getName();
-		String revisedName = revisedFile.getName();
-		
-		List<String> originalLines = FileUtils.readLines(originalFile);
-		List<String> revisedLines = FileUtils.readLines(revisedFile);
-		
+		List<String> originalLines = originalFile == null ? emptyList() : FileUtils.readLines(originalFile);
+		List<String> revisedLines = revisedFile == null ? emptyList() : FileUtils.readLines(revisedFile);
+
+		String originalName = originalFile == null ? "null" : originalFile.getName();
+		String revisedName = revisedFile == null ? "null" : revisedFile.getName();
+
 		Patch diff = DiffUtils.diff(originalLines, revisedLines);
 		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
-		
+
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("name", revisedName);
 		data.put("code", StringUtills.join(lines, "\n"));
@@ -100,19 +100,6 @@ public class HtmlGenerator {
 		diffs.add(revisedName);
 
 		return this;
-	}
-	
-	private void saveDiff(File originalFile, File revisedFile) throws IOException {
-		String originalName = originalFile.getName();
-		String revisedName = revisedFile.getName();
-		
-		List<String> originalLines = FileUtils.readLines(originalFile);
-		List<String> revisedLines = FileUtils.readLines(revisedFile);
-		
-		Patch diff = DiffUtils.diff(originalLines, revisedLines);
-		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
-		
-		FileUtils.writeLines(new File(diffDir, revisedName), lines);
 	}
 
 	public HtmlGenerator generateIndex() throws IOException {
@@ -138,6 +125,10 @@ public class HtmlGenerator {
 		}
 		File resourceFile = new File(url.getFile());
 		FileUtils.copyDirectory(resourceFile, dir);
+	}
+
+	private List<String> emptyList() {
+		return new ArrayList<String>();
 	}
 
 }

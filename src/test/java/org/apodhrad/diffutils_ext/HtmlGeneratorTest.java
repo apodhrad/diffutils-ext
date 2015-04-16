@@ -6,15 +6,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import difflib.DiffUtils;
-import difflib.Patch;
 
 /**
  * 
@@ -34,7 +30,7 @@ public class HtmlGeneratorTest {
 	}
 
 	@Before
-//	@After
+	@After
 	public void deleteTestDir() {
 		FileUtils.deleteQuietly(new File(target, "diff-reports"));
 	}
@@ -48,19 +44,51 @@ public class HtmlGeneratorTest {
 		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
 		assertTrue(new File(new File(target, "diff-reports"), "lib").exists());
 		assertTrue(new File(new File(target, "diff-reports"), "diff").exists());
-		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test.html").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test2.txt.html").exists());
 
 		File index = new File(new File(target, "diff-reports"), "index.html");
 
-		assertHtml("<a href=\"diff/test.html\">test</a>", index);
+		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
 
-//		htmlGenerator.generateHtmlDiff(diff, "test2").generateIndex();
-//		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
-//		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test.html").exists());
-//		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test2.html").exists());
-//
-//		assertHtml("<a href=\"diff/test.html\">test</a>", index);
-//		assertHtml("<a href=\"diff/test2.html\">test2</a>", index);
+		htmlGenerator.generateHtmlDiff(test2, test1).generateIndex();
+		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test1.txt.html").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test2.txt.html").exists());
+
+		assertHtml("<a href=\"diff/test1.txt.html\">test1.txt</a>", index);
+		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
+	}
+
+	@Test
+	public void generateHtmlDiffWithoutOriginalTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiff(null, test2).generateIndex();
+
+		assertTrue(new File(target, "diff-reports").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "lib").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "diff").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "test2.txt.html").exists());
+
+		File index = new File(new File(target, "diff-reports"), "index.html");
+
+		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
+	}
+
+	@Test
+	public void generateHtmlDiffWithoutRevisedTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiff(test1, null).generateIndex();
+
+		assertTrue(new File(target, "diff-reports").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "lib").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "diff").exists());
+		assertTrue(new File(new File(new File(target, "diff-reports"), "diff"), "null.html").exists());
+
+		File index = new File(new File(target, "diff-reports"), "index.html");
+
+		assertHtml("<a href=\"diff/null.html\">null</a>", index);
 	}
 
 	private void assertHtml(String expected, File htmlFile) throws IOException {
