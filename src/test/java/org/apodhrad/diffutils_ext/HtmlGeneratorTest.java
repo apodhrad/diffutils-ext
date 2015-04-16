@@ -1,5 +1,5 @@
 package org.apodhrad.diffutils_ext;
-
+import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,16 +20,18 @@ public class HtmlGeneratorTest {
 
 	private File target;
 	protected File test1;
+	protected File test1Copy;
 	protected File test2;
 
 	public HtmlGeneratorTest() {
 		test1 = new File(getClass().getResource("/test1.txt").getFile());
+		test1Copy = new File(getClass().getResource("/test1-copy.txt").getFile());
 		test2 = new File(getClass().getResource("/test2.txt").getFile());
 		target = new File(System.getProperty("project.build.directory", "target"));
 	}
 
 	@Before
-	@After
+//	@After
 	public void deleteTestDir() {
 		FileUtils.deleteQuietly(new File(target, "diff-reports"));
 	}
@@ -90,10 +91,30 @@ public class HtmlGeneratorTest {
 
 		assertHtml("<a href=\"diff/null.html\">null</a>", index);
 	}
+	
+	@Test
+	public void generateHtmlDiffForSameFilesTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiff(test1, test1Copy).generateIndex();
+
+		assertTrue(new File(target, "diff-reports").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "index.html").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "lib").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "diff").exists());
+		assertTrue(new File(new File(target, "diff-reports"), "diff").listFiles().length == 0);
+
+		File index = new File(new File(target, "diff-reports"), "index.html");
+
+		assertNotHtml("<a href=\"diff/null.html\">null</a>", index);
+	}
 
 	private void assertHtml(String expected, File htmlFile) throws IOException {
 		String html = FileUtils.readFileToString(htmlFile);
 		assertThat(html, containsString(expected));
-
+	}
+	
+	private void assertNotHtml(String expected, File htmlFile) throws IOException {
+		String html = FileUtils.readFileToString(htmlFile);
+		assertThat(html, not(containsString(expected)));
 	}
 }

@@ -83,6 +83,10 @@ public class HtmlGenerator {
 
 		Patch diff = DiffUtils.diff(originalLines, revisedLines);
 		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
+		
+		if (lines.isEmpty()) {
+			return this;
+		}
 
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("name", revisedName);
