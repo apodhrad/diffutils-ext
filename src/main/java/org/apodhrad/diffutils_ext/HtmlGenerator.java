@@ -1,5 +1,8 @@
 package org.apodhrad.diffutils_ext;
 
+import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
+import static org.apache.commons.io.filefilter.FileFilterUtils.trueFileFilter;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,10 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import difflib.DiffUtils;
 import difflib.Patch;
-import difflib.StringUtills;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -37,8 +42,6 @@ public class HtmlGenerator {
 	private Template diffTemplate;
 	private Template indexTemplate;
 
-	private List<String> diffs;
-
 	public HtmlGenerator(String target) {
 		this(new File(target));
 	}
@@ -46,8 +49,6 @@ public class HtmlGenerator {
 	public HtmlGenerator(File target) {
 		this.diffReports = new File(target, DIFF_REPORTS);
 		this.diffDir = new File(this.diffReports, DIFF_DIR);
-
-		diffs = new ArrayList<String>();
 	}
 
 	public HtmlGenerator create() throws IOException {
@@ -70,9 +71,9 @@ public class HtmlGenerator {
 		return this;
 	}
 
-	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile) throws IOException {
+	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile, String... path) throws IOException {
 		if (originalFile == null && revisedFile == null) {
-			throw new IllegalArgumentException("At least one must be specified!");
+			throw new IllegalArgumentException("At least one file must be specified!");
 		}
 
 		List<String> originalLines = originalFile == null ? emptyList() : FileUtils.readLines(originalFile);
@@ -83,16 +84,20 @@ public class HtmlGenerator {
 
 		Patch diff = DiffUtils.diff(originalLines, revisedLines);
 		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
-		
+
 		if (lines.isEmpty()) {
 			return this;
 		}
 
+		File diffPathDir = new File(diffDir, StringUtils.join(path, "/"));
+		diffPathDir.mkdirs();
+
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("name", revisedName);
-		data.put("code", StringUtills.join(lines, "\n"));
+		data.put("code", StringUtils.join(lines, "\n"));
+		data.put("lib", diffPathDir.toPath().relativize(new File(diffReports, "lib").toPath()).toString());
 
-		Writer fileWriter = new FileWriter(new File(diffDir, revisedName + ".html"));
+		Writer fileWriter = new FileWriter(new File(diffPathDir, revisedName + ".html"));
 		try {
 			diffTemplate.process(data, fileWriter);
 		} catch (TemplateException e) {
@@ -101,12 +106,16 @@ public class HtmlGenerator {
 			fileWriter.close();
 		}
 
-		diffs.add(revisedName);
-
 		return this;
 	}
 
 	public HtmlGenerator generateIndex() throws IOException {
+		List<String> diffs = new ArrayList<String>();
+
+		for (File file : FileUtils.listFiles(diffDir, suffixFileFilter(".html"), trueFileFilter())) {
+			diffs.add(diffDir.toPath().relativize(file.toPath()).toString().replace(".html", ""));
+		}
+
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("diffs", diffs);
 
