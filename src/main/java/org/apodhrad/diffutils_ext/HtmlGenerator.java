@@ -10,10 +10,13 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import difflib.DiffUtils;
@@ -69,6 +72,54 @@ public class HtmlGenerator {
 		return this;
 	}
 
+	public HtmlGenerator generateHtmlDiffDir(File originalDir, File revisedDir, String... path) throws IOException {
+		if (originalDir == null || revisedDir == null) {
+			throw new IllegalArgumentException("At least one file must be specified!");
+		}
+
+		if (!originalDir.isDirectory() || !revisedDir.isDirectory()) {
+			throw new HtmlGeneratorException("You have to specify directories!");
+		}
+
+		Map<String, Long> originalFiles = new HashMap<String, Long>();
+		for (File originalFile : FileUtils.listFiles(originalDir, trueFileFilter(), trueFileFilter())) {
+			String filePath = originalDir.toPath().relativize(originalFile.toPath()).toString();
+			originalFiles.put(filePath, FileUtils.checksumCRC32(originalFile));
+		}
+
+		Map<String, Long> revisedFiles = new HashMap<String, Long>();
+		for (File revisedFile : FileUtils.listFiles(revisedDir, trueFileFilter(), trueFileFilter())) {
+			String filePath = revisedDir.toPath().relativize(revisedFile.toPath()).toString();
+			revisedFiles.put(filePath, FileUtils.checksumCRC32(revisedFile));
+		}
+
+		Set<String> diffFiles = new HashSet<String>();
+		for (String filePath : originalFiles.keySet()) {
+			Long originalHash = originalFiles.get(filePath);
+			Long revisedHash = revisedFiles.get(filePath);
+			if (originalHash == null || revisedHash == null || !originalHash.equals(revisedHash)) {
+				diffFiles.add(filePath);
+				revisedFiles.remove(filePath);
+			}
+		}
+		for (String filePath : revisedFiles.keySet()) {
+			Long originalHash = originalFiles.get(filePath);
+			Long revisedHash = revisedFiles.get(filePath);
+			if (originalHash == null || revisedHash == null || !originalHash.equals(revisedHash)) {
+				diffFiles.add(filePath);
+			}
+		}
+
+		for (String filePath : diffFiles) {
+			File originalFile = getFile(originalDir, filePath);
+			File revisedFile = getFile(revisedDir, filePath);
+			String[] diffFilePath = ArrayUtils.addAll(path, filePath.split("/"));
+			generateHtmlDiff(originalFile, revisedFile, ArrayUtils.remove(diffFilePath, diffFilePath.length - 1));
+		}
+
+		return this;
+	}
+
 	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile, String... path) throws IOException {
 		if (originalFile == null && revisedFile == null) {
 			throw new IllegalArgumentException("At least one file must be specified!");
@@ -94,12 +145,14 @@ public class HtmlGenerator {
 		File diffPathDir = new File(diffDir, StringUtils.join(path, "/"));
 		diffPathDir.mkdirs();
 
+		String name = revisedName.equals("null") ? originalName : revisedName;
+
 		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("name", revisedName);
+		data.put("name", name);
 		data.put("code", StringUtils.join(lines, "\n"));
 		data.put("lib", diffPathDir.toPath().relativize(new File(diffReports, "lib").toPath()).toString());
 
-		Writer fileWriter = new FileWriter(new File(diffPathDir, revisedName + ".html"));
+		Writer fileWriter = new FileWriter(new File(diffPathDir, name + ".html"));
 		try {
 			diffTemplate.process(data, fileWriter);
 		} catch (TemplateException e) {
@@ -144,6 +197,14 @@ public class HtmlGenerator {
 
 	private List<String> emptyList() {
 		return new ArrayList<String>();
+	}
+
+	private static File getFile(File dir, String filePath) {
+		File file = new File(dir, filePath);
+		if (file.exists()) {
+			return file;
+		}
+		return null;
 	}
 
 }
