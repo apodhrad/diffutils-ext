@@ -9,8 +9,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -37,7 +37,7 @@ public class HtmlGeneratorTest {
 	}
 
 	@Before
-//	@After
+	@After
 	public void deleteTestDir() {
 		FileUtils.deleteQuietly(new File(target, "diff-reports"));
 	}
@@ -130,8 +130,7 @@ public class HtmlGeneratorTest {
 		assertHtml("<a href=\"diff/group/com/example/test2.txt.html\">group/com/example/test2.txt</a>", index);
 	}
 
-	@Ignore
-	@Test
+	@Test(expected = HtmlGeneratorException.class)
 	public void generateHtmlDiffDirTest() throws Exception {
 		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
 		htmlGenerator.generateHtmlDiff(dir1, dir2).generateIndex();

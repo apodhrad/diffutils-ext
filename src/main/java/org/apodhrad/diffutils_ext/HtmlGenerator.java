@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
 import difflib.DiffUtils;
@@ -74,6 +72,10 @@ public class HtmlGenerator {
 	public HtmlGenerator generateHtmlDiff(File originalFile, File revisedFile, String... path) throws IOException {
 		if (originalFile == null && revisedFile == null) {
 			throw new IllegalArgumentException("At least one file must be specified!");
+		}
+
+		if ((originalFile != null && originalFile.isDirectory()) || (revisedFile != null && revisedFile.isDirectory())) {
+			throw new HtmlGeneratorException("Directories are not supported!");
 		}
 
 		List<String> originalLines = originalFile == null ? emptyList() : FileUtils.readLines(originalFile);
