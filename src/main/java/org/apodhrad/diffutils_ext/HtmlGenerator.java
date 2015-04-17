@@ -4,6 +4,8 @@ import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
 import static org.apache.commons.io.filefilter.FileFilterUtils.trueFileFilter;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -129,14 +131,22 @@ public class HtmlGenerator {
 			throw new HtmlGeneratorException("Directories are not supported!");
 		}
 
-		List<String> originalLines = originalFile == null ? emptyList() : FileUtils.readLines(originalFile);
-		List<String> revisedLines = revisedFile == null ? emptyList() : FileUtils.readLines(revisedFile);
-
 		String originalName = originalFile == null ? "null" : originalFile.getName();
 		String revisedName = revisedFile == null ? "null" : revisedFile.getName();
 
-		Patch diff = DiffUtils.diff(originalLines, revisedLines);
-		List<String> lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
+		List<String> lines = new ArrayList<String>();
+
+		if (isBinaryFile(originalFile) || isBinaryFile(revisedFile)) {
+			if (FileUtils.checksumCRC32(originalFile) == FileUtils.checksumCRC32(revisedFile)) {
+				return this;
+			}
+			lines.add("Binary files " + originalName + " and " + revisedName + " differ");
+		} else {
+			List<String> originalLines = originalFile == null ? emptyList() : FileUtils.readLines(originalFile);
+			List<String> revisedLines = revisedFile == null ? emptyList() : FileUtils.readLines(revisedFile);
+			Patch diff = DiffUtils.diff(originalLines, revisedLines);
+			lines = DiffUtils.generateUnifiedDiff(originalName, revisedName, originalLines, diff, 1);
+		}
 
 		if (lines.isEmpty()) {
 			return this;
@@ -205,6 +215,40 @@ public class HtmlGenerator {
 			return file;
 		}
 		return null;
+	}
+
+	private static boolean isBinaryFile(File f) throws FileNotFoundException, IOException {
+		if (f == null) {
+			return false;
+		}
+		FileInputStream in = new FileInputStream(f);
+		int size = in.available();
+		if (size > 1024)
+			size = 1024;
+		byte[] data = new byte[size];
+		in.read(data);
+		in.close();
+
+		int ascii = 0;
+		int other = 0;
+
+		for (int i = 0; i < data.length; i++) {
+			byte b = data[i];
+			if (b < 0x09)
+				return true;
+
+			if (b == 0x09 || b == 0x0A || b == 0x0C || b == 0x0D)
+				ascii++;
+			else if (b >= 0x20 && b <= 0x7E)
+				ascii++;
+			else
+				other++;
+		}
+
+		if (other == 0)
+			return false;
+
+		return 100 * other / (ascii + other) > 95;
 	}
 
 }

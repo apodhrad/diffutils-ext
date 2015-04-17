@@ -26,6 +26,8 @@ public class HtmlGeneratorTest {
 	protected File test2;
 	private File dir1;
 	private File dir2;
+	private File binary1;
+	private File binary2;
 
 	public HtmlGeneratorTest() {
 		test1 = new File(getClass().getResource("/test1.txt").getFile());
@@ -33,6 +35,9 @@ public class HtmlGeneratorTest {
 		test2 = new File(getClass().getResource("/test2.txt").getFile());
 		dir1 = new File(getClass().getResource("/dir1").getFile());
 		dir2 = new File(getClass().getResource("/dir2").getFile());
+		binary1 = new File(getClass().getResource("/Hello1.class").getFile());
+		binary2 = new File(getClass().getResource("/Hello2.class").getFile());
+
 		target = new File(System.getProperty("project.build.directory", "target"));
 	}
 
@@ -55,15 +60,15 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
+		assertContains("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
 
 		htmlGenerator.generateHtmlDiff(test2, test1).generateIndex();
 		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
 		assertTrue(new File(getDiffDir(), "test1.txt.html").exists());
 		assertTrue(new File(getDiffDir(), "test2.txt.html").exists());
 
-		assertHtml("<a href=\"diff/test1.txt.html\">test1.txt</a>", index);
-		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
+		assertContains("<a href=\"diff/test1.txt.html\">test1.txt</a>", index);
+		assertContains("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
 	}
 
 	@Test
@@ -79,7 +84,7 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertHtml("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
+		assertContains("<a href=\"diff/test2.txt.html\">test2.txt</a>", index);
 	}
 
 	@Test
@@ -91,11 +96,12 @@ public class HtmlGeneratorTest {
 		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
 		assertTrue(getLibDir().exists());
 		assertTrue(getDiffDir().exists());
+		assertTrue(getDiffDir().listFiles().length == 1);
 		assertTrue(new File(getDiffDir(), "test1.txt.html").exists());
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertHtml("<a href=\"diff/test1.txt.html\">test1.txt</a>", index);
+		assertContains("<a href=\"diff/test1.txt.html\">test1.txt</a>", index);
 	}
 
 	@Test
@@ -111,7 +117,41 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertNotHtml("<a href=\"diff/null.html\">null</a>", index);
+		assertNotContains("<a href=\"diff/null.html\">null</a>", index);
+	}
+
+	@Test
+	public void generateHtmlDiffWithSameBinaryFilesTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiff(binary1, binary1).generateIndex();
+
+		assertTrue(getDiffReportsDir().exists());
+		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
+		assertTrue(getLibDir().exists());
+		assertTrue(getDiffDir().exists());
+		assertTrue(getDiffDir().listFiles().length == 0);
+
+		File index = new File(getDiffReportsDir(), "index.html");
+
+		assertNotContains("<a href=\"diff/Hello2.class.html\">Hello2.class</a>", index);
+	}
+
+	@Test
+	public void generateHtmlDiffWithBinaryFilesTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiff(binary1, binary2).generateIndex();
+
+		assertTrue(getDiffReportsDir().exists());
+		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
+		assertTrue(getLibDir().exists());
+		assertTrue(getDiffDir().exists());
+		assertTrue(getDiffDir().listFiles().length == 1);
+		assertTrue(new File(getDiffDir(), "Hello2.class.html").exists());
+		assertContains("Binary files Hello1.class and Hello2.class differ", new File(getDiffDir(), "Hello2.class.html"));
+
+		File index = new File(getDiffReportsDir(), "index.html");
+
+		assertContains("<a href=\"diff/Hello2.class.html\">Hello2.class</a>", index);
 	}
 
 	@Test
@@ -127,7 +167,7 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertHtml("<a href=\"diff/group/com/example/test2.txt.html\">group/com/example/test2.txt</a>", index);
+		assertContains("<a href=\"diff/group/com/example/test2.txt.html\">group/com/example/test2.txt</a>", index);
 	}
 
 	@Test(expected = HtmlGeneratorException.class)
@@ -143,7 +183,7 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertNotHtml("<a href=\"diff/null.html\">null</a>", index);
+		assertNotContains("<a href=\"diff/null.html\">null</a>", index);
 	}
 
 	@Test
@@ -161,17 +201,17 @@ public class HtmlGeneratorTest {
 
 		File index = new File(getDiffReportsDir(), "index.html");
 
-		assertHtml("<a href=\"diff/dir/com/example/Hello.java.html\">dir/com/example/Hello.java</a>", index);
-		assertHtml("<a href=\"diff/dir/com/example/NewClass.java.html\">dir/com/example/NewClass.java</a>", index);
-		assertHtml("<a href=\"diff/dir/com/example/OldClass.java.html\">dir/com/example/OldClass.java</a>", index);
+		assertContains("<a href=\"diff/dir/com/example/Hello.java.html\">dir/com/example/Hello.java</a>", index);
+		assertContains("<a href=\"diff/dir/com/example/NewClass.java.html\">dir/com/example/NewClass.java</a>", index);
+		assertContains("<a href=\"diff/dir/com/example/OldClass.java.html\">dir/com/example/OldClass.java</a>", index);
 	}
 
-	private void assertHtml(String expected, File htmlFile) throws IOException {
+	private void assertContains(String expected, File htmlFile) throws IOException {
 		String html = FileUtils.readFileToString(htmlFile);
 		assertThat(html, containsString(expected));
 	}
 
-	private void assertNotHtml(String expected, File htmlFile) throws IOException {
+	private void assertNotContains(String expected, File htmlFile) throws IOException {
 		String html = FileUtils.readFileToString(htmlFile);
 		assertThat(html, not(containsString(expected)));
 	}
@@ -187,4 +227,5 @@ public class HtmlGeneratorTest {
 	private File getDiffDir() {
 		return new File(getDiffReportsDir(), "diff");
 	}
+
 }
