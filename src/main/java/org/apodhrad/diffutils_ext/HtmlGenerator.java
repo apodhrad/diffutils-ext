@@ -8,16 +8,24 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Writer;
+import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -201,8 +209,12 @@ public class HtmlGenerator {
 		if (url == null) {
 			throw new HtmlGeneratorException("Cannot find resource '" + resource + "'");
 		}
-		File resourceFile = new File(url.getFile());
-		FileUtils.copyDirectory(resourceFile, dir);
+		URLConnection urlConnection = url.openConnection();
+		if (urlConnection instanceof JarURLConnection) {
+			copyJarResourceToFolder((JarURLConnection) urlConnection, dir);
+		} else {
+			FileUtils.copyURLToFile(url, dir);
+		}
 	}
 
 	private List<String> emptyList() {
@@ -249,6 +261,41 @@ public class HtmlGenerator {
 			return false;
 
 		return 100 * other / (ascii + other) > 95;
+	}
+
+	public void copyJarResourceToFolder(JarURLConnection jarConnection, File destDir) throws IOException {
+		JarFile jarFile = jarConnection.getJarFile();
+
+		/**
+		 * Iterate all entries in the jar file.
+		 */
+		for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements();) {
+
+			JarEntry jarEntry = e.nextElement();
+			String jarEntryName = jarEntry.getName();
+			String jarConnectionEntryName = jarConnection.getEntryName();
+
+			/**
+			 * Extract files only if they match the path.
+			 */
+			if (jarEntryName.startsWith(jarConnectionEntryName)) {
+
+				String filename = jarEntryName.startsWith(jarConnectionEntryName) ? jarEntryName
+						.substring(jarConnectionEntryName.length()) : jarEntryName;
+				File currentFile = new File(destDir, filename);
+
+				if (jarEntry.isDirectory()) {
+					currentFile.mkdirs();
+				} else {
+					InputStream is = jarFile.getInputStream(jarEntry);
+					OutputStream out = FileUtils.openOutputStream(currentFile);
+					IOUtils.copy(is, out);
+					is.close();
+					out.close();
+				}
+			}
+		}
+
 	}
 
 }
