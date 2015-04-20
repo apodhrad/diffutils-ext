@@ -201,7 +201,7 @@ public class HtmlGenerator {
 			indexTemplate.process(data, fileWriter);
 		} catch (TemplateException e) {
 			throw new HtmlGeneratorException("Cannot generate " + name + ".html", e);
-		} finally { 
+		} finally {
 			fileWriter.close();
 		}
 
@@ -217,7 +217,7 @@ public class HtmlGenerator {
 		if (urlConnection instanceof JarURLConnection) {
 			copyJarResourceToFolder((JarURLConnection) urlConnection, dir);
 		} else {
-			FileUtils.copyURLToFile(url, dir);
+			FileUtils.copyDirectory(new File(url.getFile()), dir);
 		}
 	}
 

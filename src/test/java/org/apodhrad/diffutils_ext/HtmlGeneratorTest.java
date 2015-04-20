@@ -55,6 +55,8 @@ public class HtmlGeneratorTest {
 		assertTrue(getDiffReportsDir().exists());
 		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
 		assertTrue(getLibDir().exists());
+		assertTrue(new File(getLibDir(), "scripts").exists());
+		assertTrue(new File(getLibDir(), "styles").exists());
 		assertTrue(getDiffDir().exists());
 		assertTrue(new File(getDiffDir(), "test2.txt.html").exists());
 
