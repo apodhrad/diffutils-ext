@@ -9,7 +9,7 @@
 
 <h1>List of all diffs</h1>
 <ul>
-  <#list diffs as diff>
+  <#list diffs?sort as diff>
     <li><a href="diff/${diff}.html">${diff}</a></li>
   </#list>
 </ul>

@@ -183,21 +183,25 @@ public class HtmlGenerator {
 	}
 
 	public HtmlGenerator generateIndex() throws IOException {
+		return generateIndex("/", "index");
+	}
+
+	public HtmlGenerator generateIndex(String subfolder, String name) throws IOException {
 		List<String> diffs = new ArrayList<String>();
 
-		for (File file : FileUtils.listFiles(diffDir, suffixFileFilter(".html"), trueFileFilter())) {
+		for (File file : FileUtils.listFiles(new File(diffDir, subfolder), suffixFileFilter(".html"), trueFileFilter())) {
 			diffs.add(diffDir.toPath().relativize(file.toPath()).toString().replace(".html", ""));
 		}
 
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("diffs", diffs);
 
-		Writer fileWriter = new FileWriter(new File(diffReports, "index.html"));
+		Writer fileWriter = new FileWriter(new File(diffReports, name + ".html"));
 		try {
 			indexTemplate.process(data, fileWriter);
 		} catch (TemplateException e) {
-			throw new HtmlGeneratorException("Cannot generate index.html", e);
-		} finally {
+			throw new HtmlGeneratorException("Cannot generate " + name + ".html", e);
+		} finally { 
 			fileWriter.close();
 		}
 

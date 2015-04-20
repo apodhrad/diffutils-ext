@@ -205,6 +205,26 @@ public class HtmlGeneratorTest {
 		assertContains("<a href=\"diff/dir/com/example/NewClass.java.html\">dir/com/example/NewClass.java</a>", index);
 		assertContains("<a href=\"diff/dir/com/example/OldClass.java.html\">dir/com/example/OldClass.java</a>", index);
 	}
+	
+	@Test
+	public void generateHtmlDiffDirWithSubfolderTest() throws Exception {
+		HtmlGenerator htmlGenerator = new HtmlGenerator(target).create();
+		htmlGenerator.generateHtmlDiffDir(dir1, dir2, "dir").generateIndex("dir", "abc");
+
+		assertTrue(getDiffReportsDir().exists());
+		assertTrue(getLibDir().exists());
+		assertTrue(getDiffDir().exists());
+		assertTrue(new File(getDiffDir(), "/dir/com/example/Hello.java.html").exists());
+		assertTrue(new File(getDiffDir(), "/dir/com/example/NewClass.java.html").exists());
+		assertTrue(new File(getDiffDir(), "/dir/com/example/OldClass.java.html").exists());
+		assertTrue(new File(getDiffReportsDir(), "abc.html").exists());
+
+		File index = new File(getDiffReportsDir(), "abc.html");
+
+		assertContains("<a href=\"diff/dir/com/example/Hello.java.html\">dir/com/example/Hello.java</a>", index);
+		assertContains("<a href=\"diff/dir/com/example/NewClass.java.html\">dir/com/example/NewClass.java</a>", index);
+		assertContains("<a href=\"diff/dir/com/example/OldClass.java.html\">dir/com/example/OldClass.java</a>", index);
+	}
 
 	private void assertContains(String expected, File htmlFile) throws IOException {
 		String html = FileUtils.readFileToString(htmlFile);
