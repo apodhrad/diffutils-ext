@@ -3,6 +3,7 @@ package org.apodhrad.diffutils_ext;
 import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
 import static org.apache.commons.io.filefilter.FileFilterUtils.trueFileFilter;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -15,6 +16,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,6 +180,16 @@ public class HtmlGenerator {
 		} finally {
 			fileWriter.close();
 		}
+		
+		BufferedWriter diffWriter = new BufferedWriter(new FileWriter(new File(diffPathDir, name + ".diff")));
+		try {
+			diffWriter.write(data.get("code").toString());
+		} catch (IOException e) {
+			throw new HtmlGeneratorException("Cannot create diff with name '" + name + ".diff'", e);
+		} finally {
+			diffWriter.flush();
+			diffWriter.close();
+		}
 
 		return this;
 	}
@@ -203,6 +215,21 @@ public class HtmlGenerator {
 			throw new HtmlGeneratorException("Cannot generate " + name + ".html", e);
 		} finally {
 			fileWriter.close();
+		}
+		
+		Collection<File> diffFiles = FileUtils.listFiles(new File(diffDir, subfolder), new String[] {"diff"}, true);
+
+		BufferedWriter diffIndex = new BufferedWriter(new FileWriter(new File(diffReports, name + ".diff")));
+		try {
+			for (File diffFile: diffFiles) {
+				diffIndex.write(FileUtils.readFileToString(diffFile));
+				diffIndex.write(System.getProperty("line.separator"));
+			}
+		} catch (IOException e) {
+			throw new HtmlGeneratorException("Cannot generate " + name + ".diff", e);
+		} finally {
+			diffIndex.flush();
+			diffIndex.close();
 		}
 
 		return this;

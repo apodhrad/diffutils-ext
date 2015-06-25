@@ -98,7 +98,7 @@ public class HtmlGeneratorTest {
 		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
 		assertTrue(getLibDir().exists());
 		assertTrue(getDiffDir().exists());
-		assertTrue(getDiffDir().listFiles().length == 1);
+		assertTrue(getDiffDir().listFiles().length == 2);
 		assertTrue(new File(getDiffDir(), "test1.txt.html").exists());
 
 		File index = new File(getDiffReportsDir(), "index.html");
@@ -147,7 +147,7 @@ public class HtmlGeneratorTest {
 		assertTrue(new File(getDiffReportsDir(), "index.html").exists());
 		assertTrue(getLibDir().exists());
 		assertTrue(getDiffDir().exists());
-		assertTrue(getDiffDir().listFiles().length == 1);
+		assertTrue(getDiffDir().listFiles().length == 2);
 		assertTrue(new File(getDiffDir(), "Hello2.class.html").exists());
 		assertContains("Binary files Hello1.class and Hello2.class differ", new File(getDiffDir(), "Hello2.class.html"));
 
