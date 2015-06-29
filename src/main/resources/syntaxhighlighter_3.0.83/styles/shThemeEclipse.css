@@ -126,3 +126,23 @@
   font-style: italic !important;
   color: #2a00ff !important;
 }
+
+.syntaxhighlighter .meta1 {
+  padding: 0.5em !important;
+  font-weight: bold !important;
+  color: black !important;
+  background-color: silver !important;
+}
+.syntaxhighlighter .meta2 {
+  padding: 0.5em !important;
+  color: black !important;
+  background-color: silver !important;
+}
+.syntaxhighlighter .new {
+  padding: 0.5em !important;
+  background-color: lightgreen !important;
+}
+.syntaxhighlighter .old {
+  padding: 0.5em !important;
+  background-color: lightcoral !important;
+}
