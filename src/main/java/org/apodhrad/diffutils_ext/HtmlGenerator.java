@@ -147,6 +147,14 @@ public class HtmlGenerator {
 		List<String> lines = new ArrayList<String>();
 
 		if (isBinaryFile(originalFile) || isBinaryFile(revisedFile)) {
+			if (originalFile == null) {
+				lines.add("There is the new file " + originalName);
+				return this;
+			}
+			if (revisedFile == null) {
+				lines.add("The new file " + originalName + " was removed");
+				return this;
+			}
 			if (FileUtils.checksumCRC32(originalFile) == FileUtils.checksumCRC32(revisedFile)) {
 				return this;
 			}
@@ -180,7 +188,7 @@ public class HtmlGenerator {
 		} finally {
 			fileWriter.close();
 		}
-		
+
 		BufferedWriter diffWriter = new BufferedWriter(new FileWriter(new File(diffPathDir, name + ".diff")));
 		try {
 			diffWriter.write(data.get("code").toString());
@@ -216,12 +224,12 @@ public class HtmlGenerator {
 		} finally {
 			fileWriter.close();
 		}
-		
-		Collection<File> diffFiles = FileUtils.listFiles(new File(diffDir, subfolder), new String[] {"diff"}, true);
+
+		Collection<File> diffFiles = FileUtils.listFiles(new File(diffDir, subfolder), new String[] { "diff" }, true);
 
 		BufferedWriter diffIndex = new BufferedWriter(new FileWriter(new File(diffReports, name + ".diff")));
 		try {
-			for (File diffFile: diffFiles) {
+			for (File diffFile : diffFiles) {
 				diffIndex.write(FileUtils.readFileToString(diffFile));
 				diffIndex.write(System.getProperty("line.separator"));
 			}
